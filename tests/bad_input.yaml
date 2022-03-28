@@ -1,0 +1,73 @@
+kind: thanos.ftdrinternal.com/service/deployment
+version: v1
+metadata:
+  effort: ahs
+  env: infra-alpha
+  labels:
+    component: backend
+    applicationtype: go-lang
+deployment:
+  service_port: 1337
+  replicas: 1
+  maxsurge: 1
+  maxunavailable: 1
+  regions:
+    - name: us-central
+      zone: 1
+    - name: us-west
+      zone: 1
+  env:
+    - name: test
+      value: value
+    - name: baz
+      type: ci
+      valueFrom: GITLAB_BAZ_VALUE
+routing:
+  edge:
+    hosts:
+    - host:
+        type: global
+        name: dev.apis.frontdoorhome.com
+    - host:
+        type: local
+        name: dev.apis.ftdrinternal.com
+    routes:
+      # array of route objects
+      http:
+        - match:  # match uris
+            - uri:
+                prefix: /app/
+            - uri:
+                prefix: /bar/
+          rewrite: 
+            uri: /baz # optionally rewrite the matches
+          gatewaySelectors:
+            - local
+        - match:  # match uris
+            - uri:
+                prefix: /v3/
+            - uri:
+                prefix: /v1/
+          rewrite: 
+            uri: /foo # optionally rewrite the matches
+          gatewaySelectors:
+            - global
+        - match:  # match uris
+            - uri:
+                prefix: /v4/
+            - uri:
+                prefix: /v2/
+  internal:
+    peers:
+    - hosts:
+      - ratings.bookinfo.global
+      ports:
+      - 9080
+      endpoints:
+      - ingress.1.demo.mc-peltdemos-b.gcp.us-central1.mesh.ftdrinternal.com
+    - hosts:
+      - service-bar.namespace-bar.global
+      ports:
+      - 9443
+      endpoints:
+      - ingress.1.cluster.project.gcp.us-central1.mesh.ftdrinternal.com

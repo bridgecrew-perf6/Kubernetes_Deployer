@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: REPLACE-ME
+  namespace: istio-system # enable for all namespaces
+spec:
+  hosts:
+  # must be of form name.namespace.global
+  - REPLACE-ME
+  # Treat remote cluster services as part of the service mesh
+  # as all clusters in the service mesh share the same root of trust.
+  # exportTo:
+  # - "."
+  location: MESH_INTERNAL
+  ports:
+  - name: http
+    number: 80 # REPLACE if provided
+    protocol: http
+  resolution: DNS
+  addresses:
+  # the IP address to which name.namespace.global will resolve to
+  # must be unique for each remote service, within a given cluster.
+  # This address need not be routable. Traffic for this IP will be captured
+  # by the sidecar and routed appropriately.
+  # Use 240.0.0.0/4 network
+  - REPLACE-ME
+  endpoints:
+  # This is the routable address of the ingress gateway in cluster2
+  # Traffic from the sidecar will be routed to this address.
+  # e.g. ingress.1.env.project-b.gcp.us-central1.mesh.ftdrinternal.com
+  - address: "REPLACE-ME"
+    ports:
+      http: 15443 # Do not change this port value

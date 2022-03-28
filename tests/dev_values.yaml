@@ -1,0 +1,55 @@
+kind: thanos.ftdrinternal.com/service/deployment
+version: v1
+metadata:
+  app: b-ratings
+  effort: someEffort
+  env: development
+  labels:
+    component: backend
+    applicationtype: go-lang #go-lang dotnet react angular
+deployment:
+  service_port: PORT
+  replicas: 1
+  maxsurge: 1
+  maxunavailable: 1
+  regions:
+    - name: us-central
+      zone: 1
+    - name: us-west
+      zone: 1
+  env:
+    - name: foo #if no type provided literal values are passed
+      value: bar
+    - name: TEST_VALUE_FROM
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: baz
+      type: ci #if type is defined, valueFrom is required this builds secrets and refs
+      valueFrom: GITLAB_BAZ_VALUE
+routing:
+  edge:
+    hosts:
+      - dev.apis.frontdoorhome.com #who's allowed in
+    routes:
+      http:
+        - match:
+            - uri:
+                prefix: /crystal-ball/ #where they're going relative to edge gateway
+            - uri:
+                prefix: /v1/
+          rewrite: 
+            uri: /
+  external:
+  - hosts:
+    - ratings.bookinfo.global
+    ports:
+    - 9080
+    endpoints:
+    - ingress.1.demo.mc-peltdemos-b.gcp.us-central1.mesh.ftdrinternal.com
+  - hosts:
+    - service-bar.namespace-bar.global
+    ports:
+    - 9443
+    endpoints:
+    - ingress.1.cluster.project.gcp.us-central1.mesh.ftdrinternal.com

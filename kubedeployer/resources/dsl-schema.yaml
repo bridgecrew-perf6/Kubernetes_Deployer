@@ -1,0 +1,71 @@
+kind: enum('thanos.ftdrinternal.com/service/deployment')
+metadata:
+  app: str()
+  effort: str()
+  env: str()
+  revision: str(required=False)
+  labels:
+    component: str()
+    applicationtype: enum('go-lang', 'dotnet', 'dotnetcore', 'angular', 'react', 'generic', 'logstash', 'function', 'jboss')
+deployment:
+  jobConfig: any(required=False)
+  pipelineConfig: any(required=False)
+  logstashConfig: any(required=False)
+  service_port: int(required=False)
+  service_protocol: enum('http', 'grpc', required=False)
+  replicas: int(required=False)
+  maxsurge: int(required=False)
+  maxunavailable: int(required=False)
+  regions: list(include('region'), required=False)
+  env: list(include('envValue'), include('envKubernetesRef'), include('envGitlabRef'), required=False)
+routing:
+  edge: include('edgeRoute', required=False)
+  internal: include('internalRoute', required=False)
+--- # includes are below
+region: any(include('region-east'), include('region-central'))
+
+region-east:
+  name: enum('us-east')
+  zone: enum(1, 4)
+
+region-central:
+  name: enum('us-central')
+  zone: enum(1)
+
+envValue:
+  name: str()
+  value: any(num(), str(), bool())
+
+envKubernetesRef:
+  name: str()
+  valueFrom: map()
+
+envGitlabRef:
+  name: str()
+  valueFrom: str()
+  type: enum('ci')
+
+hostname: regex('^([*]|(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]))$', name="valid Hostname")
+
+hostEntry:
+  host:
+    type: enum('global', 'local', 'tyk')
+    name: include('hostname')
+
+httpRoute:
+  match: list(map())
+  rewrite: map(required=False)
+  gatewaySelectors: list(enum('local', 'global', 'tyk'), required=False)
+
+peerEntry:
+  hosts: list(regex('.*\.global$', name="valid peer address"))
+  ports: list(int)
+  endpoints: list(include('hostname'))
+
+internalRoute:
+  peers: list(include('peerEntry'), required=False)
+
+edgeRoute:
+  hosts: list(include('hostEntry'), required=False)
+  routes:
+    http: list(include('httpRoute'), required=False)

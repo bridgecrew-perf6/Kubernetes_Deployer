@@ -1,0 +1,62 @@
+appVars:
+  env:
+    test: value
+  envFrom:
+    TEST_VALUE_FROM:
+      fieldRef:
+        fieldPath: status.podIP
+  secrets:
+    baz: this value is from gitlab
+    glob_var: this value is scoped with a glob
+deploymentDetails:
+  commit_short_sha: somesha
+  environment: dev
+  imageName: pie
+  maxsurge: 1
+  maxunavailable: 1
+  replicas: 1
+global:
+  appName: contract
+  hosts:
+  - host:
+      name: '*'
+      type: global
+  - host:
+      name: '*'
+      type: local
+  labels:
+    app: contract
+    applicationtype: go-lang
+    component: backend
+    env: dev
+  service_port: 1337
+  service_protocol: grpc
+imageCredentials:
+  password: baz
+  registry: foo
+  username: bar
+virtualService:
+  routes:
+    http:
+    - match:
+      - uri:
+          prefix: /servicename/
+      - uri:
+          prefix: /anothername/
+      rewrite:
+        uri: /
+    - match:
+      - uri:
+          prefix: /servicename
+      - uri:
+          prefix: /servicename/
+virtualserviceglobal:
+  routes:
+    http:
+    - match:
+      - uri:
+          prefix: /servicename/v1
+      - uri:
+          prefix: /servicename/v2
+      rewrite:
+        uri: /servicename

@@ -1,0 +1,75 @@
+kind: thanos.ftdrinternal.com/service/deployment
+version: v1
+metadata:
+  app: contract
+  effort: core 
+  env: dev
+  labels:
+    component: backend
+    applicationtype: go-lang
+deployment:
+  service_port: 1337
+  service_protocol: grpc
+  replicas: 1
+  maxsurge: 1
+  maxunavailable: 1
+  regions:
+    - name: us-central
+      zone: 1
+    - name: us-east
+      zone: 4
+  env:
+    - name: test
+      value: value
+    - name: baz
+      type: ci
+      valueFrom: GITLAB_BAZ_VALUE
+    - name: glob_var
+      type: ci
+      valueFrom: GITLAB_SCOPED_VALUE
+    - name: TEST_VALUE_FROM
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+routing:
+  edge:
+    hosts:
+    - host:
+        type: global
+        name: '*'
+    - host:
+        type: local
+        name: '*'
+    routes:
+      http:
+        - match:
+            - uri:
+                prefix: /servicename/
+            - uri:
+                prefix: /anothername/
+          rewrite: 
+            uri: / 
+          gatewaySelectors:
+            - local
+        - match:  
+            - uri:
+                prefix: /servicename/v1
+            - uri:
+                prefix: /servicename/v2
+          rewrite: 
+            uri: /servicename
+          gatewaySelectors:
+            - global
+        - match:  
+            - uri:
+                prefix: /servicename
+            - uri:
+                prefix: /servicename/
+  internal:
+    peers:
+    - hosts:
+      - sally.sally.global
+      ports:
+      - 50051
+      endpoints:
+      - ingress.1.core.dev.gcp.us-central1.mesh.ftdrinternal.com
